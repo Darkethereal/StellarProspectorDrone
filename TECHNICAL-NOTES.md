@@ -1,6 +1,6 @@
 # Technical notes
 
-**Edited and maintained by Darkethereal — Prospector Drone 0.3.20.**
+**Edited and maintained by Darkethereal — Prospector Drone 0.3.22.**
 
 ## Confirmed game integration points
 

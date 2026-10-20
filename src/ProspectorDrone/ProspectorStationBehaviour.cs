@@ -1,6 +1,7 @@
 // Prospector Drone — edited and maintained by Darkethereal.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HarmonyLib;
 using Items.Model;
@@ -27,6 +28,10 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
     private const float LaunchRise = 1.25f;
     private const float HarvestTimeout = 3f;
     private const float StuckTimeout = 20f;
+    private const string UpgradeProfilePrefix = "stellar-prospector-drone.profile.";
+    private const string UpgradeProfileVersionKey = UpgradeProfilePrefix + "version";
+    private static readonly string[] UpgradeLevelKeys =
+        { "flightLevel", "miningLevel", "cargoLevel", "rangeLevel" };
 
     private readonly Dictionary<string, DroneRuntime> _drones = new();
     private readonly Dictionary<int, string> _reservations = new();
@@ -55,6 +60,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
     public override void OnPartAdded(ContentPart part)
     {
         Normalize(part.Config);
+        RestoreOrCreateUpgradeProfile(part.Config);
         StationAccess.EnsureOwner(part.Config, null);
         EnsureOwnerName(part.Config, null);
         Runtime(part).State = DroneState.Docked;
@@ -222,6 +228,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
     public override void ServerTick(ContentPart part, float deltaTime)
     {
         Normalize(part.Config);
+        RestoreOrCreateUpgradeProfile(part.Config);
         var runtime = Runtime(part);
         if (!TryStationPosition(part, out var station))
         {
@@ -254,7 +261,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
             case DroneState.Docked:
             case DroneState.Paused:
                 part.Config.Set("droneDocked", true);
-                runtime.MoveVisual(dock, dock + Vector3.forward, false, false);
+                runtime.LevelVisual(dock, false);
                 if (part.Config.GetBool("enabled", false) && StationRoomFor(part, Selected(part.Config)) > 0)
                     runtime.State = DroneState.Launching;
                 else if (part.Config.GetBool("enabled", false))
@@ -522,7 +529,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
         var distance = Vector3.Distance(runtime.Position, approach);
         if (distance <= 0.12f)
         {
-            runtime.MoveVisual(approach, approach, false);
+            runtime.LevelVisual(approach);
             runtime.State = DroneState.Docking;
             return;
         }
@@ -539,7 +546,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
         var distance = Vector3.Distance(runtime.Position, dock);
         if (distance <= 0.06f)
         {
-            runtime.MoveVisual(dock, dock, false, false);
+            runtime.LevelVisual(dock, false);
             runtime.State = DroneState.Unloading;
             return;
         }
@@ -653,6 +660,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
         part.Ship.UpdatePartState(part.PartId, storage);
         if (playerCost.Count > 0) player.RemoveItemsFromInventory(playerCost);
         part.Config.Set(key, level + 1);
+        SaveUpgradeProfile(part.Config);
         SetStatus(part.Config, TrackName(track) + " upgraded to level " + (level + 1));
     }
 
@@ -917,7 +925,7 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
     private static void Normalize(PartConfig config)
     {
         if (!Balance.ResourceIds.Contains((uint)config.GetInt("resource", 0))) config.Set("resource", (int)Balance.Iron);
-        foreach (var key in new[] { "flightLevel", "miningLevel", "cargoLevel", "rangeLevel" })
+        foreach (var key in UpgradeLevelKeys)
             config.Set(key, Mathf.Clamp(config.GetInt(key, 0), 0, Balance.MaxLevel));
         for (var slot = 0; slot < Balance.MaxCargoSlots; slot++)
         {
@@ -937,6 +945,37 @@ internal sealed class ProspectorStationBehaviour : PartBehaviour
         if (!config.Has("enabled")) config.Set("enabled", false);
         if (!config.Has("ownerName")) config.Set("ownerName", string.Empty);
         if (!config.Has("droneDocked")) config.Set("droneDocked", true);
+    }
+
+    private static void RestoreOrCreateUpgradeProfile(PartConfig config)
+    {
+        // WorldData is serialized in this world's sdmodkit-content.json, so the
+        // profile survives removal of every table but never leaks into another
+        // save. Existing table levels seed the profile during migration.
+        if (WorldData.Get(UpgradeProfileVersionKey) != "1")
+        {
+            SaveUpgradeProfile(config);
+            return;
+        }
+
+        foreach (var key in UpgradeLevelKeys)
+        {
+            var saved = WorldData.Get(UpgradeProfilePrefix + key);
+            if (!int.TryParse(saved, NumberStyles.Integer, CultureInfo.InvariantCulture, out var level))
+            {
+                level = Level(config, key);
+                WorldData.Set(UpgradeProfilePrefix + key, level.ToString(CultureInfo.InvariantCulture));
+            }
+            config.Set(key, Mathf.Clamp(level, 0, Balance.MaxLevel));
+        }
+    }
+
+    private static void SaveUpgradeProfile(PartConfig config)
+    {
+        foreach (var key in UpgradeLevelKeys)
+            WorldData.Set(UpgradeProfilePrefix + key,
+                Level(config, key).ToString(CultureInfo.InvariantCulture));
+        WorldData.Set(UpgradeProfileVersionKey, "1");
     }
 
     internal static int Level(PartConfig config, string key) => Mathf.Clamp(config.GetInt(key, 0), 0, Balance.MaxLevel);

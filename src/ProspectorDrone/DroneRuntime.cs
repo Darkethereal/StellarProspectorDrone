@@ -33,6 +33,9 @@ internal sealed class DroneRuntime
 
     private const float AirborneModelHeight = 0f;
     private const float HoverBobAmplitude = 0.22f;
+    private const float MinimumSurfaceClearance = 1f;
+    private const float ClearanceProbeHeight = 0.05f;
+    private const float ClearanceProbeDistance = 4096f;
 
     internal Vector3 Position => _root == null ? LastStation : _root.transform.position;
     internal Vector3 Forward => _root == null ? Vector3.forward : _root.transform.forward;
@@ -58,24 +61,21 @@ internal sealed class DroneRuntime
         var mount = new GameObject("Drone Model Mount");
         mount.transform.SetParent(_root.transform, false);
         _modelMount = mount.transform;
-        // Keep the drone mount on Unity's standard axes: X right, Y up, Z
-        // forward. The GLB's import-only roll belongs on a nested asset child.
+        // Keep both the model and its mount on Unity's standard axes: X right,
+        // Y up, Z forward. Rotating the imported asset -90 degrees around Z
+        // swapped its visible X/Y axes and left the otherwise-level drone
+        // pointing toward the ground.
         _modelMount.localRotation = Quaternion.identity;
-        var assetCorrection = new GameObject("GLB Import Correction");
-        assetCorrection.transform.SetParent(_modelMount, false);
-        assetCorrection.transform.localRotation = Quaternion.AngleAxis(-90f, Vector3.forward);
         try
         {
-            if (GlbModelLoader.Instantiate(assetCorrection.transform) == null)
+            if (GlbModelLoader.Instantiate(_modelMount) == null)
             {
-                Object.Destroy(assetCorrection);
                 AddFallbackVisual();
             }
         }
         catch (System.Exception error)
         {
             MelonLoader.MelonLogger.Warning("[ProspectorDrone] Mining Drone Mk VII model could not load; using fallback: " + error.Message);
-            Object.Destroy(assetCorrection);
             AddFallbackVisual();
         }
 
@@ -123,6 +123,9 @@ internal sealed class DroneRuntime
     {
         EnsureVisual(next);
         EnsureVisible();
+        // Enforce clearance at the final visual boundary on every airborne
+        // update. State-specific movement code cannot accidentally bypass it.
+        if (hover) next = EnforceAirborneClearance(next);
         _root.transform.position = next;
         var direction = lookAt - next;
         if (direction.sqrMagnitude > 0.01f)
@@ -145,6 +148,35 @@ internal sealed class DroneRuntime
         }
         if (_indicator != null) _indicator.Deployed = hover;
         SetLaser(laser, lookAt);
+    }
+
+    private Vector3 EnforceAirborneClearance(Vector3 intended)
+    {
+        // Query downward from the intended position on every solid layer so
+        // terrain, planets, ship decks, constructed floors, and future surface
+        // layers all uphold the same invariant. Starting at the drone rather
+        // than high above it prevents ceilings/upper decks from being mistaken
+        // for the floor when the drone is operating inside a ship.
+        // The model's rotation-independent extent and the downward bob margin
+        // keep its lowest visible point at least one full metre above a surface.
+        var origin = new Vector3(intended.x, intended.y + ClearanceProbeHeight, intended.z);
+        var hits = Physics.SphereCastAll(origin, 0.20f, Vector3.down,
+            ClearanceProbeDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+        var highestSurface = float.NegativeInfinity;
+        foreach (var hit in hits)
+        {
+            if (hit.collider == null || hit.collider.GetComponentInParent<DroneHitboxMarker>() != null)
+                continue;
+            if (hit.point.y > highestSurface) highestSurface = hit.point.y;
+        }
+
+        if (!float.IsNegativeInfinity(highestSurface))
+        {
+            var bobMargin = HoverBobAmplitude + 0.03f;
+            var minimumRootY = highestSurface + BottomExtent + MinimumSurfaceClearance + bobMargin;
+            intended.y = Mathf.Max(intended.y, minimumRootY);
+        }
+        return intended;
     }
 
     internal void LevelVisual(Vector3 next, bool hover = true)

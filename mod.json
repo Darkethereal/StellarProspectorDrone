@@ -2,7 +2,7 @@
   "id": "stellar-prospector-drone",
   "name": "Prospector Drone",
   "author": "Darkethereal",
-  "version": "0.3.20",
+  "version": "0.3.22",
   "description": "Adds a placeable station with an autonomous laser-mining drone, selectable Wood, Copper, Glass, or Iron targets, storage, and upgradeable speed, mining power, cargo, and range.",
   "thumbnail": "images/prospector-drone-hover.png",
   "images": [

@@ -13,7 +13,7 @@ The station uses StellarDrive's vanilla Research Centre/Table model. An upright 
 - StellarDrive Demo
 - MelonLoader 0.7.3 or compatible
 - SDModKit 1.3.3 or compatible
-- The host must install this mod. Version 0.3.20 is intentionally marked host-only.
+- The host must install this mod. Version 0.3.22 is intentionally marked host-only.
 
 ## Installation
 
@@ -57,11 +57,11 @@ Every track has ten upgrade levels. The panel displays ten filled/unfilled segme
 
 ## Saving
 
-SDModKit persists the selected resource, automation setting, four upgrade levels, and cargo quantities in `sdmodkit-content.json` alongside the world save. The drone is safely restored at its station rather than mid-flight. The station inventory is the game's native `StorageState` and is saved normally by StellarDrive.
+SDModKit persists the selected resource, automation setting, cargo quantities, and a shared Prospector upgrade profile in `sdmodkit-content.json` alongside each world save. Removing and rebuilding the table in the same game restores its Flight, Mining, Cargo, and Range levels. Different saves have independent profiles. The drone is safely restored at its station rather than mid-flight. The station inventory is the game's native `StorageState` and is saved normally by StellarDrive.
 
 ## Multiplayer
 
-Mining, node depletion, cargo, unloading, configuration, access permissions, and upgrade purchases are host-authoritative. Access entries are persisted by Steam ID. Remote requests are accepted only while that player is interacting with the correct station. Version 0.3.20 does not network the custom moving drone mesh to remote clients; the host sees the full Drone Mk VII model and beam, while authoritative resources and station state remain synchronized through game/SDModKit state.
+Mining, node depletion, cargo, unloading, configuration, access permissions, and upgrade purchases are host-authoritative. Access entries are persisted by Steam ID. Remote requests are accepted only while that player is interacting with the correct station. Version 0.3.22 does not network the custom moving drone mesh to remote clients; the host sees the full Drone Mk VII model and beam, while authoritative resources and station state remain synchronized through game/SDModKit state.
 
 ## Safety and recovery
 
@@ -79,8 +79,8 @@ Check `MelonLoader/Latest.log` in the StellarDrive installation. Search for `Pro
 
 ## Known limitations
 
-- Drone flight is direct point-to-point and does not include obstacle pathfinding in 0.3.20.
-- The custom moving drone visual is host-local in 0.3.20.
+- Drone flight is direct point-to-point and does not include obstacle pathfinding in 0.3.22.
+- The custom moving drone visual is host-local in 0.3.22.
 - A live in-world balance pass is still recommended for flight speed and scan radius.
 
 ## Credits and authorship

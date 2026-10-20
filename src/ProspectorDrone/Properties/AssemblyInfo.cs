@@ -5,7 +5,7 @@ using MelonLoader;
 using SDModKit.Api;
 using StellarProspectorDrone;
 
-[assembly: MelonInfo(typeof(Plugin), "Prospector Drone", "0.3.20", "Darkethereal")]
+[assembly: MelonInfo(typeof(Plugin), "Prospector Drone", "0.3.22", "Darkethereal")]
 [assembly: MelonGame("CuriousOwlGames", "StellarDrive")]
 [assembly: HarmonyDontPatchAll]
 [assembly: StellarMod("prospector-drone", "Prospector Drone", Description = "Autonomous mining drone with selectable resources and upgrades.", HostOnly = true)]
@@ -13,5 +13,5 @@ using StellarProspectorDrone;
 [assembly: AssemblyProduct("Prospector Drone")]
 [assembly: AssemblyCompany("Darkethereal")]
 [assembly: AssemblyCopyright("Copyright © 2026 Darkethereal")]
-[assembly: AssemblyVersion("0.3.20.0")]
-[assembly: AssemblyFileVersion("0.3.20.0")]
+[assembly: AssemblyVersion("0.3.22.0")]
+[assembly: AssemblyFileVersion("0.3.22.0")]
