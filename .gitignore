@@ -1,0 +1,11 @@
+# Prospector Drone repository maintained by Darkethereal.
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+*.pdb
+*.log
+Downloads/
+

@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Prospector Drone project edited and maintained by Darkethereal. -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>StellarProspectorDrone</AssemblyName>
+    <RootNamespace>StellarProspectorDrone</RootNamespace>
+    <GameDir Condition="'$(GameDir)' == ''">$(STELLARDRIVE_GAME_DIR)</GameDir>
+    <ManagedDir>$(GameDir)\StellarDrive_Data\Managed</ManagedDir>
+    <ManagerDir Condition="'$(ManagerDir)' == ''">$(LocalAppData)\Programs\StellarModManager</ManagerDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Content\prospector-content.json" LogicalName="prospector-content.json" />
+    <EmbeddedResource Include="AssetsRaw\MiningDroneMkVII\source\mining_drone_mk7.glb" LogicalName="mining_drone_mk7.glb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MelonLoader" HintPath="$(GameDir)\MelonLoader\net472\MelonLoader.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(GameDir)\MelonLoader\net472\0Harmony.dll" Private="false" />
+    <Reference Include="SDModKit" HintPath="$(ManagerDir)\Library\sdmodkit\Mods\SDModKit.dll" Private="false" />
+    <Reference Include="Core" HintPath="$(ManagedDir)\Core.dll" Private="false" />
+    <Reference Include="Items.Model" HintPath="$(ManagedDir)\Items.Model.dll" Private="false" />
+    <Reference Include="Managers.Interface" HintPath="$(ManagedDir)\Managers.Interface.dll" Private="false" />
+    <Reference Include="Newtonsoft.Json" HintPath="$(ManagedDir)\Newtonsoft.Json.dll" Private="false" />
+    <Reference Include="Planets" HintPath="$(ManagedDir)\Planets.dll" Private="false" />
+    <Reference Include="Planets.Interface" HintPath="$(ManagedDir)\Planets.Interface.dll" Private="false" />
+    <Reference Include="Players" HintPath="$(ManagedDir)\Players.dll" Private="false" />
+    <Reference Include="Players.Interface" HintPath="$(ManagedDir)\Players.Interface.dll" Private="false" />
+    <Reference Include="Ships" HintPath="$(ManagedDir)\Ships.dll" Private="false" />
+    <Reference Include="Ships.Interface" HintPath="$(ManagedDir)\Ships.Interface.dll" Private="false" />
+    <Reference Include="Tools.Interface" HintPath="$(ManagedDir)\Tools.Interface.dll" Private="false" />
+    <Reference Include="WorldObjects" HintPath="$(ManagedDir)\WorldObjects.dll" Private="false" />
+    <Reference Include="WorldObjects.Interface" HintPath="$(ManagedDir)\WorldObjects.Interface.dll" Private="false" />
+    <Reference Include="WorldTracking.Interface" HintPath="$(ManagedDir)\WorldTracking.Interface.dll" Private="false" />
+    <Reference Include="UnityEngine" HintPath="$(ManagedDir)\UnityEngine.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedDir)\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.PhysicsModule" HintPath="$(ManagedDir)\UnityEngine.PhysicsModule.dll" Private="false" />
+    <Reference Include="UnityEngine.TextRenderingModule" HintPath="$(ManagedDir)\UnityEngine.TextRenderingModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UI" HintPath="$(ManagedDir)\UnityEngine.UI.dll" Private="false" />
+    <Reference Include="UnityEngine.UIModule" HintPath="$(ManagedDir)\UnityEngine.UIModule.dll" Private="false" />
+    <Reference Include="Unity.TextMeshPro" HintPath="$(ManagedDir)\Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="UnityEngine.IMGUIModule" HintPath="$(ManagedDir)\UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="UnityEngine.InputLegacyModule" HintPath="$(ManagedDir)\UnityEngine.InputLegacyModule.dll" Private="false" />
+  </ItemGroup>
+
+  <Target Name="PackageMod" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <MakeDir Directories="$(ManagerDir)\Library\stellar-prospector-drone\Mods" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ManagerDir)\Library\stellar-prospector-drone\Mods" />
+  </Target>
+</Project>
